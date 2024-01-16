@@ -2,8 +2,11 @@ package com.HiagoDev.Aula.services;
 
 import com.HiagoDev.Aula.Repositories.UserRepository;
 import com.HiagoDev.Aula.entities.User;
+import com.HiagoDev.Aula.services.exceptions.DataBaseException;
 import com.HiagoDev.Aula.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,10 +29,18 @@ public class UserService {
     public User insert(User obj) {
         return repository.save(obj);
     }
-    public  void delete(long id){
-        repository.deleteById(id);
+
+    public void delete(long id) {
+        try {
+            repository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResourceNotFoundException(id);
+        } catch (DataIntegrityViolationException e) {
+            throw new DataBaseException(e.getMessage());
+        }
     }
-    public User update(Long id, User obj){
+
+    public User update(Long id, User obj) {
         User entity = repository.getReferenceById(id);
         updateData(entity, obj);
         return repository.save(entity);
